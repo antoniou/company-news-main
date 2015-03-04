@@ -8,7 +8,7 @@ TERRAFORM_DIR=${GIT_REPOSITORIES[1]}
 PACKER_DIR=packer
 AWS_REGION=eu-west-1
 
-PACKAGE_DEPENDENCIES=( packer terraform aws )
+PACKAGE_DEPENDENCIES=( git packer terraform )
 _V=0
 
 usage() {
@@ -59,6 +59,7 @@ pack_images() {
     packer build \
       -var "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
       -var "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+      -var "ANSIBLE_DIR=$ANSIBLE_DIR" \
       $PACKER_DIR/webserver-ec2.json | tee packer.log
 
     AMI=$(cat packer.log| grep "amazon-ebs: AMI:"|awk '{print $4}')
@@ -106,7 +107,6 @@ done
 
 check_for_dependencies
 check_credentials
-echo "HERE"
 clone_repositories
 pack_images
 deploy
