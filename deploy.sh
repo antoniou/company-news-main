@@ -61,6 +61,7 @@ pack_images() {
       -var "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
       -var "ANSIBLE_DIR=$ANSIBLE_DIR" \
       $PACKER_DIR/webserver-ec2.json | tee packer.log
+    test ${PIPESTATUS[0]} -eq 0;
 
     AMI=$(cat packer.log| grep "amazon-ebs: AMI:"|awk '{print $4}')
   done
