@@ -20,7 +20,7 @@
       "source_ami": "{{user `SOURCE_AMI`}}",
       "instance_type": "{{user `INSTANCE_TYPE`}}",
       "ssh_username": "{{user `SSH_NAME`}}",
-      "ami_name": "{{user `NAME`}}",
+      "ami_name": "{{user `NAME`}} {{user `TIMESTAMP` | clean_ami_name}}",
       "ssh_timeout": "10m",
       "tags": {
         "Name": "{{user `NAME`}}",
