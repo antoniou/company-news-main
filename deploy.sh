@@ -7,6 +7,7 @@ ANSIBLE_DIR=${GIT_REPOSITORIES}
 TERRAFORM_DIR=${GIT_REPOSITORIES[1]}
 PACKER_DIR=packer
 AWS_REGION=eu-west-1
+SKIP_PACKING=0
 
 PACKAGE_DEPENDENCIES=( git packer terraform )
 _V=0
@@ -17,6 +18,7 @@ usage() {
 
     -h    Display help message
     -v    Verbose mode
+    -s    skip building image
 EOF
 exit 1;
 }
@@ -54,14 +56,17 @@ clone_repositories() {
 pack_images() {
   for p in $PACKER_DIR/*.json
   do
-    log "Packing image with $PACKER_DIR/$p"
+    log "Packing image with $p"
 
-    packer build \
-      -var "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
-      -var "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
-      -var "ANSIBLE_DIR=$ANSIBLE_DIR" \
-      $PACKER_DIR/webserver-ec2.json | tee packer.log
-    test ${PIPESTATUS[0]} -eq 0;
+    if [ $SKIP_PACKING -eq 0 ];
+    then
+      packer build \
+        -var "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
+        -var "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
+        -var "ANSIBLE_DIR=$ANSIBLE_DIR" \
+        $p | tee packer.log
+      test ${PIPESTATUS[0]} -eq 0;
+    fi
 
     AMI=$(cat packer.log| grep "amazon-ebs: AMI:"|awk '{print $4}')
   done
@@ -94,7 +99,7 @@ deploy() {
 [ "$#" -lt  1 ] && usage
 ENVIRONMENT="${@: -1}"
 
-while getopts "hv" opt; do
+while getopts "hvs" opt; do
   case $opt in
     h)
       usage
@@ -102,6 +107,9 @@ while getopts "hv" opt; do
       ;;
     v)
       _V=1
+      ;;
+    s)
+      SKIP_PACKING=1
       ;;
   esac
 done
