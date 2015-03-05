@@ -80,20 +80,22 @@ deploy() {
     -var "web_ami.${AWS_REGION}=$AMI" \
     -var "access_key=${AWS_ACCESS_KEY_ID}" \
     -var "secret_key=${AWS_SECRET_ACCESS_KEY}" \
-    -var-file="environments/${ENVIRONMENT}.tfvars"
+    -var-file="environments/${ENVIRONMENT}.tfvars" \
+    -state="${ENVIRONMENT}.tfstate" \
+    -state-out="${ENVIRONMENT}.tfstate"
 
-  elb_url=$(terraform output "elb")
+  elb_url=$(terraform output -state="${ENVIRONMENT}.tfstate" "elb" )
   [ -d "../$TERRAFORM_DIR" ] && cd ..
 }
 
 wait_until_ready() {
-  log "Waiting until environment becomes ready..."
+  echo "Waiting until environment becomes ready..."
   response="404"
   while [ $response != "200" ]
   do
     sleep 5
     response=$(curl -sL -w "%{http_code} \\n" "$elb_url" -o /dev/null) || echo
-    log "Response from $elb_url was $response"
+    echo "Response from $elb_url was $response"
   done
 }
 
@@ -121,3 +123,4 @@ clone_repositories
 pack_images
 deploy
 wait_until_ready
+echo -e "\e[32mThe ${ENVIRONMENT} environment is available at ${elb_url}\!"
