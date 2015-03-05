@@ -81,20 +81,20 @@ deploy() {
     -var "secret_key=${AWS_SECRET_ACCESS_KEY}" \
     -var-file="environments/${ENVIRONMENT}.tfvars"
 
-  terraform output "elb"
+  elb_url=$(terraform output "elb")
   [ -d "../$TERRAFORM_DIR" ] && cd ..
 }
 
-# wait_until_ready() {
-#   log "Waiting until environment becomes ready..."
-#   ready=0
-#   while true;
-#   do
-#     log "Querying"
-#     curl -sL -w "%{http_code} \\n" "$elb_url" -o /dev/null
-#
-#   done
-# }
+wait_until_ready() {
+  log "Waiting until environment becomes ready..."
+  response="404"
+  while [ $response != "200" ]
+  do
+    sleep 5
+    response=$(curl -sL -w "%{http_code} \\n" "$elb_url" -o /dev/null) || echo
+    log "Response from $elb_url was $response"
+  done
+}
 
 [ "$#" -lt  1 ] && usage
 ENVIRONMENT="${@: -1}"
@@ -119,4 +119,4 @@ check_credentials
 clone_repositories
 pack_images
 deploy
-# wait_until_ready
+wait_until_ready
