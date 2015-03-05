@@ -76,6 +76,7 @@ deploy() {
   log "Deploying infrastructure for env $ENVIRONMENT with AMI $AMI"
   cd $TERRAFORM_DIR
   terraform apply \
+    -var "environment=${ENVIRONMENT}" \
     -var "web_ami.${AWS_REGION}=$AMI" \
     -var "access_key=${AWS_ACCESS_KEY_ID}" \
     -var "secret_key=${AWS_SECRET_ACCESS_KEY}" \
