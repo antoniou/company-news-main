@@ -56,10 +56,10 @@ clone_repositories() {
 pack_images() {
   for p in $PACKER_DIR/*.json
   do
-    log "Packing image with $p"
 
     if [ $SKIP_PACKING -eq 0 ];
     then
+      log "Packing image with $p"
       packer build \
         -var "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" \
         -var "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" \
@@ -68,7 +68,7 @@ pack_images() {
       test ${PIPESTATUS[0]} -eq 0;
     fi
 
-    AMI=$(cat packer.log| grep "amazon-ebs: AMI:"|awk '{print $4}')
+    AMI=$(cat packer.log| grep "amazon-ebs: AMI:"|awk '{print $4}'|cut -c1-12)
   done
 }
 
